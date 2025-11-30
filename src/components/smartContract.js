@@ -102,7 +102,7 @@ const SmartContractComponent = {
         amount, 
         status: 'Deposit thành công',
         type: 'deposit'
-      }, state);
+      }, state, elements);
       UIComponent.setStatus('Deposit to contract successful', 'success');
       return tx.hash;
     } catch (error) {
@@ -145,7 +145,7 @@ const SmartContractComponent = {
         amount, 
         status: 'Rút tiền thành công',
         type: 'withdraw'
-      }, state);
+      }, state, elements);
       UIComponent.setStatus('Withdrawal from contract successful', 'success');
       return tx.hash;
     } catch (error) {
