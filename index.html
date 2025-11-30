@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Wallet | Mini Ví Tiền Điện Tử</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js" defer></script>
+    <!-- Component modules -->
+    <script src="src/components/ui.js" defer></script>
+    <script src="src/components/wallet.js" defer></script>
+    <script src="src/components/market.js" defer></script>
+    <script src="src/components/transactions.js" defer></script>
+    <script src="src/components/smartContract.js" defer></script>
+    <!-- Main orchestrator -->
+    <script src="src/app.js" defer></script>
+  </head>
+  <body class="text-slate-100">
+    <main class="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      <header class="text-center space-y-3 pb-6 border-b border-slate-700/50">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <span class="text-2xl">💼</span>
+          <p class="uppercase tracking-[0.3em] text-sm text-cyan-300 font-bold">Simple Wallet</p>
+        </div>
+        <h1 class="text-4xl font-semibold">Ví tiền điện tử mini</h1>
+        <p class="text-slate-300">Kết nối MetaMask, xem số dư và gửi ETH testnet chỉ trong vài thao tác.</p>
+        <p class="text-xs text-amber-400 font-semibold">⚠️ Hãy chọn mạng Sepolia trong MetaMask trước khi bấm Connect</p>
+        <div class="mt-4 inline-flex gap-2 px-4 py-2 rounded-xl bg-slate-900/50 border border-slate-700/50 text-xs text-slate-400">
+          <span>📦 5 Components</span>
+          <span>•</span>
+          <span>🔧 Modular Architecture</span>
+        </div>
+      </header>
+
+      <!-- WALLET COMPONENT -->
+      <section class="grid md:grid-cols-2 gap-6">
+        <article class="blur-card rounded-2xl p-6 space-y-4 ring-1 ring-cyan-400/30">
+          <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+            <span class="text-lg">🔐</span>
+            <p class="text-xs uppercase tracking-[0.3em] text-cyan-300 font-semibold">Wallet Component</p>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-slate-300">Trạng thái ví</p>
+              <p id="walletStatus" class="text-lg font-semibold">Chưa kết nối</p>
+            </div>
+            <button id="connectBtn" class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-900 font-semibold hover:bg-cyan-400 transition">Connect Wallet</button>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-4">
+              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Địa chỉ ví</p>
+            <div class="flex gap-2">
+                <button id="copyBtn" class="px-3 py-1 text-xs rounded-lg border border-slate-500 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>Copy</button>
+                <button id="modeToggle" class="px-3 py-1 text-xs rounded-lg border border-slate-500 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition">Dark</button>
+              </div>
+            </div>
+            <p id="walletAddress" class="text-sm truncate text-slate-200 font-mono bg-slate-900/50 p-2 rounded-lg">—</p>
+          </div>
+
+          <div id="qrCanvas" class="flex justify-center py-2"></div>
+        </article>
+
+        <article class="blur-card rounded-2xl p-6 space-y-4 ring-1 ring-emerald-400/30">
+          <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+            <span class="text-lg">💰</span>
+            <p class="text-xs uppercase tracking-[0.3em] text-emerald-300 font-semibold">Balance & Market</p>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-slate-300">Số dư Sepolia</p>
+              <p id="walletBalance" class="text-3xl font-semibold">0.0000 ETH</p>
+            </div>
+            <button id="refreshBtn" class="px-4 py-2 rounded-xl border border-emerald-400 text-emerald-300 hover:bg-emerald-400 hover:text-slate-900 transition" disabled>Refresh</button>
+          </div>
+          <p class="text-xs text-slate-400">Số dư sẽ tự cập nhật sau mỗi giao dịch.</p>
+          <div class="text-sm text-slate-300 space-y-1 pt-2 border-t border-slate-700/50">
+            <p>Giá ETH: <span id="ethPriceWallet" class="text-cyan-300 font-semibold">$—</span></p>
+            <p>Giá trị ví: <span id="balanceFiatWallet" class="text-emerald-300 font-semibold">$—</span></p>
+            <p class="text-xs text-slate-400">Cập nhật: <span id="priceUpdatedAtWallet">—</span></p>
+          </div>
+        </article>
+      </section>
+
+      <!-- MARKET COMPONENT -->
+      <section class="grid md:grid-cols-2 gap-6">
+        <article class="blur-card rounded-2xl p-6 space-y-3 ring-1 ring-purple-400/30">
+          <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+            <span class="text-lg">📊</span>
+            <p class="text-xs uppercase tracking-[0.3em] text-purple-300 font-semibold">Market Data</p>
+          </div>
+          <h3 class="text-sm text-slate-400 uppercase tracking-widest">Thông tin thị trường</h3>
+          <p class="text-2xl font-semibold text-cyan-300" id="ethPrice">$—</p>
+          <p class="text-sm text-slate-300">Giá ETH hiện tại (Nguồn: CoinGecko)</p>
+          <div class="text-sm text-slate-300 space-y-1 pt-2 border-t border-slate-700/50">
+            <p>Giá trị ví ước tính: <span id="balanceFiat">$—</span></p>
+            <p>Cập nhật lần cuối: <span id="priceUpdatedAt">—</span></p>
+          </div>
+        </article>
+
+        <article class="blur-card rounded-2xl p-6 space-y-3 ring-1 ring-blue-400/30">
+          <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+            <span class="text-lg">⛽</span>
+            <p class="text-xs uppercase tracking-[0.3em] text-blue-300 font-semibold">Network Status</p>
+          </div>
+          <h3 class="text-sm text-slate-400 uppercase tracking-widest">Tình trạng mạng</h3>
+          <p class="text-xl font-semibold text-blue-300" id="networkName">Chưa xác định</p>
+          <div class="text-sm text-slate-300 space-y-1 pt-2 border-t border-slate-700/50">
+            <p>Gas price: <span id="gasBase">—</span></p>
+            <p>Ước tính phí (21k gas): <span id="txFee">—</span></p>
+            <p>Tương đương USD: <span id="txFeeFiat">—</span></p>
+          </div>
+        </article>
+      </section>
+
+      <!-- TRANSACTIONS COMPONENT -->
+      <section class="blur-card rounded-2xl p-6 space-y-4 ring-1 ring-green-400/30">
+        <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+          <span class="text-lg">💸</span>
+          <p class="text-xs uppercase tracking-[0.3em] text-green-300 font-semibold">Transactions Component</p>
+        </div>
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">Gửi ETH testnet</h2>
+          <span id="networkHint" class="text-xs text-slate-400 bg-slate-900/50 px-2 py-1 rounded">Sepolia</span>
+        </div>
+        <form id="transferForm" class="space-y-4">
+          <label class="block text-sm text-slate-300">
+            Địa chỉ nhận
+            <input id="recipient" type="text" placeholder="0x..." class="mt-1 w-full rounded-xl bg-slate-900/60 border border-slate-600 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400" />
+          </label>
+
+          <label class="block text-sm text-slate-300">
+            Số ETH muốn gửi
+            <input id="amount" type="number" min="0" step="0.0001" placeholder="0.01" class="mt-1 w-full rounded-xl bg-slate-900/60 border border-slate-600 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400" />
+          </label>
+
+          <div class="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4 text-sm text-slate-200 space-y-1" id="gasInfo">
+            <p>Phí gas dự kiến (21k gas): <span id="formTxFee" class="text-cyan-300 font-semibold">—</span></p>
+            <p>Tổng chi phí (amount + gas): <span id="totalCost" class="text-green-300 font-semibold">—</span></p>
+          </div>
+
+          <button id="sendBtn" type="submit" class="w-full py-3 rounded-xl bg-emerald-400 text-slate-900 font-semibold hover:bg-emerald-300 transition" disabled>Send ETH</button>
+        </form>
+        <p id="formError" class="text-sm text-rose-400 font-medium min-h-[1.5rem]"></p>
+        <div class="space-y-1 text-sm text-slate-300 pt-3 border-t border-slate-700/50">
+          <p>Trạng thái: <span id="txStatus" class="text-slate-200">Chưa có giao dịch</span></p>
+          <p>Tx hash: <a id="txHash" class="text-cyan-300 underline break-all" target="_blank" rel="noreferrer">—</a></p>
+        </div>
+      </section>
+
+      <!-- SMART CONTRACT COMPONENT -->
+      <section class="blur-card rounded-2xl p-6 space-y-4 ring-1 ring-orange-400/30">
+        <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+          <span class="text-lg">📜</span>
+          <p class="text-xs uppercase tracking-[0.3em] text-orange-300 font-semibold">Smart Contract Component</p>
+        </div>
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">Smart Contract - Nạp/Rút ETH</h2>
+          <span id="contractStatus" class="text-xs text-rose-400 bg-slate-900/50 px-2 py-1 rounded">✗ Chưa cấu hình</span>
+        </div>
+        <p class="text-sm text-slate-400">Tương tác với smart contract SimpleBank trên Sepolia.</p>
+        
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4 ring-1 ring-orange-400/20">
+            <p class="text-xs text-slate-400 mb-2 uppercase tracking-widest">Số dư trong contract</p>
+            <p id="contractBalance" class="text-3xl font-semibold text-orange-300">—</p>
+            <button id="refreshContractBalance" class="mt-3 px-3 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 transition" disabled>🔄 Refresh</button>
+          </div>
+
+          <div class="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4 ring-1 ring-orange-400/20 space-y-2">
+            <p class="text-xs text-slate-400 uppercase tracking-widest">Thông tin</p>
+            <p class="text-xs text-slate-400">Địa chỉ contract:</p>
+            <p id="contractAddress" class="text-xs text-orange-300 break-all font-mono bg-slate-900/50 p-2 rounded">—</p>
+            <p class="text-xs text-amber-400" id="contractWarning"></p>
+          </div>
+        </div>
+
+        <form id="depositForm" class="space-y-4 mt-4">
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="font-semibold mb-3 text-orange-300 flex items-center gap-2">
+              <span>⬆️</span> Nạp ETH vào contract
+            </h3>
+            <label class="block text-sm text-slate-300">
+              Số ETH cần nạp
+              <input id="depositAmount" type="number" min="0" step="0.0001" placeholder="0.01" class="mt-1 w-full rounded-xl bg-slate-900/60 border border-slate-600 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </label>
+            <button id="depositBtn" type="button" class="mt-3 w-full py-2 rounded-xl bg-orange-500 text-slate-900 font-semibold hover:bg-orange-400 transition" disabled>Deposit</button>
+            <p id="depositError" class="text-sm text-rose-400 font-medium mt-2 min-h-[1.5rem]"></p>
+          </div>
+        </form>
+
+        <form id="withdrawForm" class="space-y-4">
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="font-semibold mb-3 text-emerald-400 flex items-center gap-2">
+              <span>⬇️</span> Rút ETH từ contract
+            </h3>
+            <label class="block text-sm text-slate-300">
+              Số ETH cần rút
+              <input id="withdrawAmount" type="number" min="0" step="0.0001" placeholder="0.01" class="mt-1 w-full rounded-xl bg-slate-900/60 border border-slate-600 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-400" />
+            </label>
+            <button id="withdrawBtn" type="button" class="mt-3 w-full py-2 rounded-xl bg-emerald-500 text-slate-900 font-semibold hover:bg-emerald-400 transition" disabled>Withdraw</button>
+            <p id="withdrawError" class="text-sm text-rose-400 font-medium mt-2 min-h-[1.5rem]"></p>
+          </div>
+        </form>
+      </section>
+
+      <!-- HISTORY SECTION -->
+      <section class="blur-card rounded-2xl p-6 space-y-4 ring-1 ring-slate-500/30">
+        <div class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-700/50">
+          <span class="text-lg">📚</span>
+          <p class="text-xs uppercase tracking-[0.3em] text-slate-300 font-semibold">Transaction History</p>
+        </div>
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">Lịch sử giao dịch (local)</h2>
+          <div class="flex gap-2 text-xs">
+            <button id="downloadHistory" class="px-3 py-1 rounded-lg border border-slate-500 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>📥 Tải JSON</button>
+            <button id="clearHistory" class="px-3 py-1 rounded-lg border border-slate-500 text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>🗑️ Xóa</button>
+          </div>
+        </div>
+        <ul id="historyList" class="space-y-3 text-sm text-slate-200">
+          <li class="text-slate-400">Chưa có giao dịch được lưu.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

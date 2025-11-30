@@ -1,0 +1,240 @@
+// ============================================
+// SMART CONTRACT COMPONENT - Deposit/Withdraw
+// ============================================
+
+const SmartContractComponent = {
+  SIMPLE_BANK_ADDRESS: '0x09fB30F20278Af73960014666A6Fa814dCbb199f', // ✅ Production: Sepolia Testnet
+  simpleBankContract: null,
+  simpleBankABI: null,
+
+  // Load contract ABI from file
+  async loadSmartContractABI() {
+    try {
+      const response = await fetch('./src/abi/SimpleBank.json');
+      if (!response.ok) throw new Error('ABI file not found');
+      this.simpleBankABI = await response.json();
+      console.debug('Smart contract ABI loaded successfully');
+    } catch (error) {
+      console.debug('Smart contract ABI not available yet:', error.message);
+    }
+  },
+
+  // Initialize contract instance
+  initializeSmartContract(state) {
+    // Update address from config
+    this.SIMPLE_BANK_ADDRESS = document.querySelector('[data-contract-address]')?.dataset.contractAddress || '';
+    
+    if (!this.SIMPLE_BANK_ADDRESS || !this.simpleBankABI) {
+      console.debug('Smart contract not configured - address or ABI missing');
+      return;
+    }
+    
+    try {
+      this.simpleBankContract = new ethers.Contract(
+        this.SIMPLE_BANK_ADDRESS,
+        this.simpleBankABI,
+        state.provider
+      );
+      console.debug('Smart contract initialized:', this.SIMPLE_BANK_ADDRESS);
+    } catch (error) {
+      console.error('Failed to initialize smart contract:', error);
+    }
+  },
+
+  // Get user's contract balance
+  async getContractBalance(state) {
+    if (!this.simpleBankContract || !state.account) {
+      console.debug('Contract or account not available');
+      return null;
+    }
+    try {
+      const balanceWei = await this.simpleBankContract.getBalance(state.account);
+      return Number(ethers.formatEther(balanceWei));
+    } catch (error) {
+      console.error('Error fetching contract balance:', error);
+      return null;
+    }
+  },
+
+  // Deposit ETH to contract
+  async depositToContract(amount, state, elements) {
+    if (!this.simpleBankContract || !state.signer) {
+      UIComponent.setStatus('Smart contract not configured', 'error');
+      return null;
+    }
+    
+    try {
+      const valueWei = ethers.parseEther(amount);
+      const contractWithSigner = this.simpleBankContract.connect(state.signer);
+      
+      UIComponent.setStatus('Sending deposit to contract...', 'pending');
+      const tx = await contractWithSigner.deposit({ value: valueWei });
+      
+      TransactionComponent.updateTxInfo('Waiting for confirmation', tx.hash, elements);
+      await tx.wait();
+      
+      TransactionComponent.updateTxInfo('Deposit successful', tx.hash, elements);
+      await WalletComponent.fetchBalance(state, elements);
+      TransactionComponent.pushHistory({ 
+        hash: tx.hash, 
+        to: this.SIMPLE_BANK_ADDRESS, 
+        amount, 
+        status: 'Deposit thành công',
+        type: 'deposit'
+      }, state);
+      UIComponent.setStatus('Deposit to contract successful', 'success');
+      return tx.hash;
+    } catch (error) {
+      console.error('Deposit error:', error);
+      const reason = error?.info?.error?.message || error?.shortMessage || 'Deposit failed.';
+      UIComponent.setStatus(reason, 'error');
+      TransactionComponent.updateTxInfo('Deposit failed', null, elements);
+      return null;
+    }
+  },
+
+  // Withdraw ETH from contract
+  async withdrawFromContract(amount, state, elements) {
+    if (!this.simpleBankContract || !state.signer) {
+      UIComponent.setStatus('Smart contract not configured', 'error');
+      return null;
+    }
+    
+    try {
+      const valueWei = ethers.parseEther(amount);
+      const contractWithSigner = this.simpleBankContract.connect(state.signer);
+      
+      UIComponent.setStatus('Processing withdrawal from contract...', 'pending');
+      const tx = await contractWithSigner.withdraw(valueWei);
+      
+      TransactionComponent.updateTxInfo('Waiting for confirmation', tx.hash, elements);
+      await tx.wait();
+      
+      TransactionComponent.updateTxInfo('Withdrawal successful', tx.hash, elements);
+      await WalletComponent.fetchBalance(state, elements);
+      TransactionComponent.pushHistory({ 
+        hash: tx.hash, 
+        to: state.account, 
+        amount, 
+        status: 'Rút tiền thành công',
+        type: 'withdraw'
+      }, state);
+      UIComponent.setStatus('Withdrawal from contract successful', 'success');
+      return tx.hash;
+    } catch (error) {
+      console.error('Withdrawal error:', error);
+      const reason = error?.info?.error?.message || error?.shortMessage || 'Withdrawal failed.';
+      UIComponent.setStatus(reason, 'error');
+      TransactionComponent.updateTxInfo('Withdrawal failed', null, elements);
+      return null;
+    }
+  },
+
+  // Update contract UI status
+  updateContractUI(state, elements) {
+    if (this.SIMPLE_BANK_ADDRESS && this.simpleBankContract) {
+      elements.contractStatus.textContent = '✓ Đã cấu hình';
+      elements.contractStatus.className = 'text-xs text-emerald-400';
+      elements.contractAddress.textContent = this.SIMPLE_BANK_ADDRESS;
+      elements.contractWarning.textContent = '';
+      elements.depositBtn.disabled = false;
+      elements.withdrawBtn.disabled = false;
+      elements.refreshContractBalance.disabled = false;
+    } else {
+      elements.contractStatus.textContent = '✗ Chưa cấu hình';
+      elements.contractStatus.className = 'text-xs text-rose-400';
+      elements.contractAddress.textContent = '—';
+      elements.contractWarning.textContent = '⚠️ Vui lòng cập nhật SIMPLE_BANK_ADDRESS trong config';
+      elements.depositBtn.disabled = true;
+      elements.withdrawBtn.disabled = true;
+      elements.refreshContractBalance.disabled = true;
+    }
+  },
+
+  // Refresh contract balance display
+  async refreshContractBalance(state, elements) {
+    if (!state.account || !this.simpleBankContract) return;
+    try {
+      const balanceWei = await this.getContractBalance(state);
+      if (balanceWei !== null) {
+        elements.contractBalance.textContent = `${balanceWei.toFixed(4)} ETH`;
+      } else {
+        elements.contractBalance.textContent = '—';
+      }
+    } catch (error) {
+      console.error('Contract balance error:', error);
+      elements.contractBalance.textContent = '—';
+    }
+  },
+
+  // Handle deposit form submission
+  async handleDepositClick(event, state, elements) {
+    event.preventDefault();
+    const amount = elements.depositAmount.value.trim();
+    
+    if (!amount || Number(amount) <= 0) {
+      elements.depositError.textContent = 'Vui lòng nhập số ETH lớn hơn 0';
+      return;
+    }
+    
+    try {
+      const valueWei = ethers.parseEther(amount);
+      const balanceWei = await state.provider.getBalance(state.account);
+      if (balanceWei < valueWei) {
+        elements.depositError.textContent = 'Số dư ví không đủ';
+        return;
+      }
+
+      elements.depositError.textContent = '';
+      elements.depositBtn.disabled = true;
+      elements.depositBtn.textContent = 'Đang gửi...';
+      
+      const hash = await this.depositToContract(amount, state, elements);
+      if (hash) {
+        elements.depositAmount.value = '';
+        await this.refreshContractBalance(state, elements);
+      }
+    } catch (error) {
+      console.error('Deposit form error:', error);
+      elements.depositError.textContent = 'Lỗi: ' + (error?.message || 'Không xác định');
+    } finally {
+      elements.depositBtn.disabled = false;
+      elements.depositBtn.textContent = 'Deposit';
+    }
+  },
+
+  // Handle withdraw form submission
+  async handleWithdrawClick(event, state, elements) {
+    event.preventDefault();
+    const amount = elements.withdrawAmount.value.trim();
+    
+    if (!amount || Number(amount) <= 0) {
+      elements.withdrawError.textContent = 'Vui lòng nhập số ETH lớn hơn 0';
+      return;
+    }
+    
+    try {
+      const contractBalance = await this.getContractBalance(state);
+      if (contractBalance === null || contractBalance < Number(amount)) {
+        elements.withdrawError.textContent = 'Số dư trong contract không đủ';
+        return;
+      }
+
+      elements.withdrawError.textContent = '';
+      elements.withdrawBtn.disabled = true;
+      elements.withdrawBtn.textContent = 'Đang xử lý...';
+      
+      const hash = await this.withdrawFromContract(amount, state, elements);
+      if (hash) {
+        elements.withdrawAmount.value = '';
+        await this.refreshContractBalance(state, elements);
+      }
+    } catch (error) {
+      console.error('Withdraw form error:', error);
+      elements.withdrawError.textContent = 'Lỗi: ' + (error?.message || 'Không xác định');
+    } finally {
+      elements.withdrawBtn.disabled = false;
+      elements.withdrawBtn.textContent = 'Withdraw';
+    }
+  },
+};

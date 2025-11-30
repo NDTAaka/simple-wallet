@@ -1,0 +1,158 @@
+:root {
+  --card-bg: rgba(15, 23, 42, 0.5);
+  --wallet-ring: rgba(34, 211, 238, 0.1);
+  --market-ring: rgba(168, 85, 247, 0.1);
+  --transaction-ring: rgba(34, 197, 94, 0.1);
+  --contract-ring: rgba(249, 115, 22, 0.1);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  min-height: 100vh;
+}
+
+.blur-card {
+  background-color: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 10px 45px rgba(15, 23, 42, 0.35);
+  transition: all 0.3s ease;
+}
+
+.blur-card:hover {
+  background-color: rgba(15, 23, 42, 0.6);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+/* Component-specific ring styles */
+.ring-cyan-400\/30 {
+  border-color: rgba(34, 211, 238, 0.3);
+}
+
+.ring-emerald-400\/30 {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.ring-purple-400\/30 {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.ring-blue-400\/30 {
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.ring-green-400\/30 {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.ring-orange-400\/30 {
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.ring-slate-500\/30 {
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* Component headers */
+section .flex.items-center.gap-2 span {
+  animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Form focus states */
+input:focus {
+  background-color: rgba(15, 23, 42, 0.8);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+}
+
+input::placeholder {
+  color: #94a3b8;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:not(:disabled) {
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#qrCanvas canvas {
+  margin: 0 auto;
+}
+
+/* Component section spacing */
+section:first-of-type {
+  margin-top: 2rem;
+}
+
+/* Status badges */
+#walletStatus {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: rgba(15, 23, 42, 0.5);
+  display: inline-block;
+}
+
+#contractStatus {
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+
+  .blur-card {
+    padding: 1rem;
+  }
+
+  section h2 {
+    font-size: 1.125rem;
+  }
+}
+
+/* Font mono for addresses */
+.font-mono {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.025em;
+}
+
+/* Component cards animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+section {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+section:nth-child(1) { animation-delay: 0s; }
+section:nth-child(2) { animation-delay: 0.1s; }
+section:nth-child(3) { animation-delay: 0.2s; }
+section:nth-child(4) { animation-delay: 0.3s; }
+section:nth-child(5) { animation-delay: 0.4s; }
+section:nth-child(6) { animation-delay: 0.5s; }
