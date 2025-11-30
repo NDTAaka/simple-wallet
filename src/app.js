@@ -118,8 +118,8 @@ function wireEvents() {
     TransactionComponent.downloadHistoryFile(state, elements);
   });
   elements.refreshContractBalance?.addEventListener('click', () => SmartContractComponent.refreshContractBalance(state, elements));
-  elements.depositBtn?.addEventListener('click', (e) => SmartContractComponent.handleDepositClick(state, elements, e));
-  elements.withdrawBtn?.addEventListener('click', (e) => SmartContractComponent.handleWithdrawClick(state, elements, e));
+  elements.depositBtn?.addEventListener('click', (e) => SmartContractComponent.handleDepositClick(e, state, elements));
+  elements.withdrawBtn?.addEventListener('click', (e) => SmartContractComponent.handleWithdrawClick(e, state, elements));
 }
 
 // ============================================================================
