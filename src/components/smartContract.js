@@ -66,17 +66,13 @@ const SmartContractComponent = {
       return null;
     }
     try {
-      // If signer is available, use contract with signer for better compatibility
-      let contract = this.simpleBankContract;
-      if (state.signer) {
-        console.debug('Using contract with signer for getBalance');
-        contract = this.simpleBankContract.connect(state.signer);
-      }
-      
-      const balanceWei = await contract.getBalance(state.account);
+      console.debug('📊 Calling getBalance with account:', state.account);
+      // Use the read-only contract instance for view functions
+      const balanceWei = await this.simpleBankContract.getBalance(state.account);
+      console.debug('✅ Balance fetched:', balanceWei.toString());
       return Number(ethers.formatEther(balanceWei));
     } catch (error) {
-      console.error('Error fetching contract balance:', error);
+      console.error('❌ Error fetching contract balance:', error.message);
       return null;
     }
   },
@@ -203,7 +199,9 @@ const SmartContractComponent = {
 
   // Handle deposit form submission
   async handleDepositClick(event, state, elements) {
-    event.preventDefault();
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
     const amount = elements.depositAmount.value.trim();
     
     if (!amount || Number(amount) <= 0) {
@@ -239,7 +237,9 @@ const SmartContractComponent = {
 
   // Handle withdraw form submission
   async handleWithdrawClick(event, state, elements) {
-    event.preventDefault();
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
     const amount = elements.withdrawAmount.value.trim();
     
     if (!amount || Number(amount) <= 0) {
