@@ -9,33 +9,23 @@ const SmartContractComponent = {
 
   // Load contract ABI from file
   async loadSmartContractABI(state, elements, contractAddress) {
-    try {
-      // Try multiple paths for different deployment scenarios
-      const paths = [
-        '/simple-wallet/src/abi/SimpleBank.json',  // GitHub Pages
-        './src/abi/SimpleBank.json',                // Local/Relative
-        '/src/abi/SimpleBank.json',                 // Root absolute
-      ];
-      
-      let response = null;
-      for (const path of paths) {
-        try {
-          response = await fetch(path);
-          if (response.ok) break;
-        } catch (e) {
-          // Continue to next path
-        }
-      }
-      
-      if (!response || !response.ok) {
-        throw new Error(`ABI file not found in any location`);
-      }
-      
-      this.simpleBankABI = await response.json();
-      console.debug('Smart contract ABI loaded successfully');
-    } catch (error) {
-      console.error('Failed to load ABI:', error.message);
-    }
+    // ABI is now embedded directly in the component to avoid fetch issues
+    this.simpleBankABI = [
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"balance","type":"uint256"}],"name":"BalanceQueried","type":"event"},
+      {"inputs":[],"name":"deposit","outputs":[],"stateMutability":"payable","type":"function"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newBalance","type":"uint256"}],"name":"Deposit","type":"event"},
+      {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newBalance","type":"uint256"}],"name":"Withdraw","type":"event"},
+      {"stateMutability":"payable","type":"receive"},
+      {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balances","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"getMyBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"getTotalBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"totalBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"userCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"users","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}
+    ];
+    console.debug('Smart contract ABI loaded successfully (embedded)');
   },
 
   // Initialize contract instance
