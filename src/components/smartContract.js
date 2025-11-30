@@ -106,9 +106,15 @@ const SmartContractComponent = {
       UIComponent.setStatus('Deposit to contract successful', 'success');
       return tx.hash;
     } catch (error) {
-      console.error('Deposit error:', error);
-      const reason = error?.info?.error?.message || error?.shortMessage || 'Deposit failed.';
-      UIComponent.setStatus(reason, 'error');
+      // Check if user rejected the transaction
+      if (error?.code === 'ACTION_REJECTED' || error?.reason === 'rejected') {
+        console.warn('⚠️ User rejected the deposit transaction');
+        UIComponent.setStatus('Deposit cancelled by user', 'warning');
+      } else {
+        console.error('❌ Deposit error:', error);
+        const reason = error?.info?.error?.message || error?.shortMessage || error?.message || 'Deposit failed.';
+        UIComponent.setStatus(reason, 'error');
+      }
       TransactionComponent.updateTxInfo('Deposit failed', null, elements);
       return null;
     }
@@ -143,9 +149,15 @@ const SmartContractComponent = {
       UIComponent.setStatus('Withdrawal from contract successful', 'success');
       return tx.hash;
     } catch (error) {
-      console.error('Withdrawal error:', error);
-      const reason = error?.info?.error?.message || error?.shortMessage || 'Withdrawal failed.';
-      UIComponent.setStatus(reason, 'error');
+      // Check if user rejected the transaction
+      if (error?.code === 'ACTION_REJECTED' || error?.reason === 'rejected') {
+        console.warn('⚠️ User rejected the withdrawal transaction');
+        UIComponent.setStatus('Withdrawal cancelled by user', 'warning');
+      } else {
+        console.error('❌ Withdrawal error:', error);
+        const reason = error?.info?.error?.message || error?.shortMessage || error?.message || 'Withdrawal failed.';
+        UIComponent.setStatus(reason, 'error');
+      }
       TransactionComponent.updateTxInfo('Withdrawal failed', null, elements);
       return null;
     }
