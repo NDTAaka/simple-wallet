@@ -10,12 +10,31 @@ const SmartContractComponent = {
   // Load contract ABI from file
   async loadSmartContractABI() {
     try {
-      const response = await fetch('/simple-wallet/src/abi/SimpleBank.json');
-      if (!response.ok) throw new Error('ABI file not found');
+      // Try multiple paths for different deployment scenarios
+      const paths = [
+        '/simple-wallet/src/abi/SimpleBank.json',  // GitHub Pages
+        './src/abi/SimpleBank.json',                // Local/Relative
+        '/src/abi/SimpleBank.json',                 // Root absolute
+      ];
+      
+      let response = null;
+      for (const path of paths) {
+        try {
+          response = await fetch(path);
+          if (response.ok) break;
+        } catch (e) {
+          // Continue to next path
+        }
+      }
+      
+      if (!response || !response.ok) {
+        throw new Error(`ABI file not found in any location`);
+      }
+      
       this.simpleBankABI = await response.json();
       console.debug('Smart contract ABI loaded successfully');
     } catch (error) {
-      console.debug('Smart contract ABI not available yet:', error.message);
+      console.error('Failed to load ABI:', error.message);
     }
   },
 
