@@ -66,7 +66,14 @@ const SmartContractComponent = {
       return null;
     }
     try {
-      const balanceWei = await this.simpleBankContract.getBalance(state.account);
+      // If signer is available, use contract with signer for better compatibility
+      let contract = this.simpleBankContract;
+      if (state.signer) {
+        console.debug('Using contract with signer for getBalance');
+        contract = this.simpleBankContract.connect(state.signer);
+      }
+      
+      const balanceWei = await contract.getBalance(state.account);
       return Number(ethers.formatEther(balanceWei));
     } catch (error) {
       console.error('Error fetching contract balance:', error);
