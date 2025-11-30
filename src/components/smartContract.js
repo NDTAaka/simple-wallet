@@ -21,9 +21,6 @@ const SmartContractComponent = {
 
   // Initialize contract instance
   initializeSmartContract(state) {
-    // Update address from config
-    this.SIMPLE_BANK_ADDRESS = document.querySelector('[data-contract-address]')?.dataset.contractAddress || '';
-    
     if (!this.SIMPLE_BANK_ADDRESS || !this.simpleBankABI) {
       console.debug('Smart contract not configured - address or ABI missing');
       return;
