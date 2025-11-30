@@ -66,9 +66,9 @@ const SmartContractComponent = {
       return null;
     }
     try {
-      console.debug('📊 Calling getBalance with account:', state.account);
-      // Use the read-only contract instance for view functions
-      const balanceWei = await this.simpleBankContract.getBalance(state.account);
+      console.debug('📊 Fetching balance for account:', state.account);
+      // Use balances mapping directly instead of getBalance function
+      const balanceWei = await this.simpleBankContract.balances(state.account);
       console.debug('✅ Balance fetched:', balanceWei.toString());
       return Number(ethers.formatEther(balanceWei));
     } catch (error) {
