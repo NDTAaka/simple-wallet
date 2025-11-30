@@ -171,9 +171,18 @@ const SmartContractComponent = {
 
   // Refresh contract balance display
   async refreshContractBalance(state, elements) {
-    if (!state.account || !this.simpleBankContract) return;
+    if (!state.account) {
+      console.debug('No account connected');
+      return;
+    }
+    if (!this.simpleBankContract) {
+      console.debug('Contract not initialized');
+      return;
+    }
     try {
+      console.debug('Fetching contract balance for account:', state.account);
       const balanceWei = await this.getContractBalance(state);
+      console.debug('Contract balance result:', balanceWei);
       if (balanceWei !== null) {
         elements.contractBalance.textContent = `${balanceWei.toFixed(4)} ETH`;
       } else {

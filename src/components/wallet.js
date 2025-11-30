@@ -90,7 +90,8 @@ const WalletComponent = {
       console.debug('Network info not available');
     }
     
-    // Initialize smart contract UI
+    // Re-initialize smart contract with new signer
+    await SmartContractComponent.initializeSmartContract(state, elements, SmartContractComponent.SIMPLE_BANK_ADDRESS);
     SmartContractComponent.updateContractUI(state, elements);
     await SmartContractComponent.refreshContractBalance(state, elements);
     
