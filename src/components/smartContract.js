@@ -10,7 +10,7 @@ const SmartContractComponent = {
   // Load contract ABI from file
   async loadSmartContractABI() {
     try {
-      const response = await fetch('./src/abi/SimpleBank.json');
+      const response = await fetch('/simple-wallet/src/abi/SimpleBank.json');
       if (!response.ok) throw new Error('ABI file not found');
       this.simpleBankABI = await response.json();
       console.debug('Smart contract ABI loaded successfully');
