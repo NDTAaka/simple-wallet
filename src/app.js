@@ -90,9 +90,9 @@ async function init() {
   
   await WalletComponent.init(state, elements);
   
-  // Load and initialize smart contract
+  // Load smart contract ABI first, THEN initialize contract
   await SmartContractComponent.loadSmartContractABI(state, elements, SIMPLE_BANK_ADDRESS);
-  SmartContractComponent.initializeSmartContract(state, elements, SIMPLE_BANK_ADDRESS);
+  await SmartContractComponent.initializeSmartContract(state, elements, SIMPLE_BANK_ADDRESS);
   
   // Setup event listeners
   wireEvents();

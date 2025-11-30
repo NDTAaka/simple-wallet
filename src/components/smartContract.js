@@ -29,16 +29,19 @@ const SmartContractComponent = {
   },
 
   // Initialize contract instance
-  initializeSmartContract(state, elements, contractAddress) {
+  async initializeSmartContract(state, elements, contractAddress) {
     if (contractAddress) {
       this.SIMPLE_BANK_ADDRESS = contractAddress;
     }
     
+    console.debug('Initializing contract with:');
+    console.debug('- Address:', this.SIMPLE_BANK_ADDRESS);
+    console.debug('- ABI loaded:', !!this.simpleBankABI);
+    console.debug('- Provider ready:', !!state.provider);
+    
     if (!this.SIMPLE_BANK_ADDRESS || !this.simpleBankABI) {
       console.debug('Smart contract not configured - address or ABI missing');
-      console.debug('Address:', this.SIMPLE_BANK_ADDRESS);
-      console.debug('ABI loaded:', !!this.simpleBankABI);
-      this.updateContractUI(state, elements);
+      if (elements) this.updateContractUI(state, elements);
       return;
     }
     
@@ -48,11 +51,11 @@ const SmartContractComponent = {
         this.simpleBankABI,
         state.provider
       );
-      console.debug('Smart contract initialized:', this.SIMPLE_BANK_ADDRESS);
-      this.updateContractUI(state, elements);
+      console.debug('✅ Smart contract initialized:', this.SIMPLE_BANK_ADDRESS);
+      if (elements) this.updateContractUI(state, elements);
     } catch (error) {
-      console.error('Failed to initialize smart contract:', error);
-      this.updateContractUI(state, elements);
+      console.error('❌ Failed to initialize smart contract:', error);
+      if (elements) this.updateContractUI(state, elements);
     }
   },
 
